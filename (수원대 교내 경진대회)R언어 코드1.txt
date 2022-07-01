@@ -1,0 +1,119 @@
+library(readxl)
+df <- read_excel("Downloads/경진대회용데이터.xlsx")
+View(df)
+ 
+library(dplyr)
+ 
+ 
+농로1 <- df %>% select(시도명,시군구명,q2_1_1,q29_1_1)
+농로2 <- df %>% select(시도명,시군구명,q2_2_1,q29_1_1)
+ 
+진입로1 <- df %>% select(시도명,시군구명,q2_1_1,q29_1_2)
+진입로2 <- df %>% select(시도명,시군구명,q2_2_1,q29_1_2)
+ 
+농로1 <- na.omit(농로1)
+농로2 <- na.omit(농로2)
+ 
+진입로1 <- na.omit(진입로1)
+진입로2 <- na.omit(진입로2)
+ 
+농로1 <- 농로1[농로1$q29_1_1 != 6,]
+농로1 <- 농로1[농로1$q2_1_1 ==1,]
+ 
+농로2 <- 농로2[농로2$q29_1_1 != 6,]
+농로2 <- 농로2[농로2$q2_2_1 ==1,]
+ 
+진입로1 <- 진입로1[진입로1$q29_1_2 != 6,]
+진입로1 <- 진입로1[진입로1$q2_1_1 ==1,]
+ 
+진입로2 <- 진입로2[진입로2$q29_1_2 != 6,]
+진입로2 <- 진입로2[진입로2$q2_2_1 ==1,]
+ 
+ 
+농로지역1 <- 농로1 %>% select(시도명,시군구명)
+농로지역명1 <- paste(농로지역1$시도명,농로지역1$시군구명)
+ 
+농로지역2 <- 농로2 %>% select(시도명, 시군구명)
+농로지역명2 <- paste(농로지역2$시도명,농로지역2$시군구명)
+ 
+ 
+진입로지역1 <- 진입로1 %>% select(시도명,시군구명)
+진입로지역명1 <- paste(진입로지역1$시도명,진입로지역1$시군구명)
+ 
+진입로지역2 <- 진입로2 %>% select(시도명, 시군구명)
+진입로지역명2 <- paste(진입로지역2$시도명,진입로지역2$시군구명)
+ 
+library(ggmap)
+ 
+register_google(key='')
+y1 <- table(농로지역명1)
+y2 <- table(농로지역명2)
+y3 <- table(진입로지역명1)
+y4 <- table(진입로지역명2)
+ 
+ 
+df1 <- data.frame(y1)
+df2 <- data.frame(y2)
+df3 <- data.frame(y3)
+df4 <- data.frame(y4)
+ 
+df5 <- as.character(df1$농로지역명1)
+df6 <- as.character(df2$농로지역명2)
+df7 <- as.character(df3$진입로지역명1)
+df8 <- as.character(df4$진입로지역명2)
+
+gc1=geocode(enc2utf8(df5))
+gc2=geocode(enc2utf8(df6))
+gc3=geocode(enc2utf8(df7))
+gc4=geocode(enc2utf8(df8))
+ 
+df1 <- data.frame(y1,lon=gc1$lon,lat=gc1$lat)
+df2 <- data.frame(y2,lon=gc2$lon,lat=gc2$lat)
+df3 <- data.frame(y3,lon=gc3$lon,lat=gc3$lat)
+df4 <- data.frame(y4,lon=gc4$lon,lat=gc4$lat)
+
+df1[,'지역']='농로논'df2[,'지역']='농로밭'
+
+df3[,'지역']='진입로논'df4[,'지역']='진입로밭'
+
+
+names(df1)[1] <- c('농로지역명')
+names(df2)[1] <- c('농로지역명')
+
+names(df3)[1] <- c('진입로지역명')names(df4)[1] <- c('진입로지역명')
+
+농로종합 <- rbind(df1,df2)
+
+진입로종합 <- rbind(df3,df4)
+
+cen <- c(127.5,36)
+ 
+map=get_googlemap(center = cen, maptype = "roadmap", zoom = 7)
+ 
+gmap<-ggmap(map)
+
+library(extrafont)
+font_import()
+
+
+theme_set(theme_gray(base_family='NanumGothic'))
+
+gmap+geom_point(data=농로종합,
+                aes(x=lon,y=lat,size=Freq,color=지역),
+                size=농로종합$Freq/11,
+                shape=21,
+                stroke=2,
+                fill='white',
+                alpha=0.5)
+
+
+gmap+geom_point(data=진입로종합,
+                aes(x=lon,y=lat,size=Freq,color=지역),
+                size=진입로종합$Freq/11,
+                shape=21,
+                stroke=2,
+                fill='white',
+                alpha=0.5)
+
+
+ 
