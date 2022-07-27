@@ -1,0 +1,28 @@
+R언어 코드의 경우 저장을 안하여 텍스트을 통해 주 코드를 작성하겠습니다.
+R언어의 활용은 위도 경도 추출만 진행하였습니다.
+
+library(readxl)
+library(ggmap)
+library(writexl)
+
+register_google(key='')
+
+a1 <- read_excel("ex_file")
+
+#지역명 묶을 경우
+a2 <- paste(a1$시도,a1$시군구,a1$읍면동)
+
+#데이터 타입이 character을 진행해줘야 위경도 추출 가능한 경우
+a1 <- as.character(a1)
+
+gc = geocode(enc2utf8(a1))
+
+a1 <- data.frame(a1,lon=gc$lon,lat=gc$lat)
+
+#파일 엑셀로 저장
+write_xlsx(a1,path="저장할 파일명.xlsx")
+#경로
+write_xlsx(a1,path="경로/저장할 파일명.xlsx")
+
+
+
